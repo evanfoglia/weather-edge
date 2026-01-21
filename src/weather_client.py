@@ -207,8 +207,30 @@ class WeatherClient:
             return float(temp_str)
         return None
     
+        return None
+
+    def _is_fresh(self, obs: WeatherObservation) -> bool:
+        """Check if observation is fresh enough to use (within 90 mins)."""
+        if not obs:
+            return False
+            
+        now = datetime.now(ZoneInfo("UTC"))
+        age = now - obs.timestamp
+        age_minutes = age.total_seconds() / 60
+        
+        # NWS/METAR typically update hourly. 90 mins allows for some delay/jitter
+        # but catches stuck/dead stations.
+        if age_minutes > 90:
+            logger.warning(
+                f"⚠️ Stale data from {obs.source.upper()}/{obs.station_id}: "
+                f"{age_minutes:.0f} mins old (limit 90 mins) — ignoring"
+            )
+            return False
+            
+        return True
+    
     async def get_current_observation(self, city: str) -> Optional[WeatherObservation]:
-        """Get the most recent observation for a city from any source."""
+        """Get the most recent observation for a city, requiring multi-source confirmation."""
         if city not in CITIES:
             logger.error(f"Unknown city: {city}")
             return None
@@ -221,13 +243,34 @@ class WeatherClient:
         
         nws_obs, metar_obs = await asyncio.gather(nws_task, metar_task)
         
-        # Prefer METAR as it's typically more fresh
-        if metar_obs and nws_obs:
-            if metar_obs.timestamp > nws_obs.timestamp:
-                return metar_obs
-            return nws_obs
+        # Check freshness
+        if nws_obs and not self._is_fresh(nws_obs):
+            nws_obs = None
+        if metar_obs and not self._is_fresh(metar_obs):
+            metar_obs = None
         
-        return metar_obs or nws_obs
+        # Multi-source confirmation: require both sources to agree within 2°F
+        if metar_obs and nws_obs:
+            diff = abs(metar_obs.temperature_f - nws_obs.temperature_f)
+            if diff <= 2.0:
+                # Sources agree - use higher reading for faster opportunity detection
+                if metar_obs.temperature_f >= nws_obs.temperature_f:
+                    return metar_obs
+                return nws_obs
+            else:
+                logger.warning(
+                    f"⚠️ {city.upper()}: Sources disagree by {diff:.1f}°F "
+                    f"(NWS: {nws_obs.temperature_f:.1f}°F, METAR: {metar_obs.temperature_f:.1f}°F) — skipping"
+                )
+                return None
+        
+        # Fallback: if only one source available, use it with warning
+        if metar_obs or nws_obs:
+            obs = metar_obs or nws_obs
+            logger.debug(f"{city}: Only {obs.source.upper()} available, using single source")
+            return obs
+        
+        return None
     
     async def update_max_temp(self, city: str) -> Tuple[float, Optional[WeatherObservation]]:
         """
