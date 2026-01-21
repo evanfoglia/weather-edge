@@ -41,8 +41,8 @@ Buy YES at 92¢ → Receive $1.00 at settlement → Profit: 8¢ per contract
 
 To avoid edge cases with temperature fluctuations:
 - **Above markets**: No buffer (locked once reached)
-- **Below markets**: 0.5°F buffer
-- **Between markets**: 1°F buffer
+- **Below markets**: +1°F buffer
+- **Between markets**: +1°F buffer
 
 ---
 
