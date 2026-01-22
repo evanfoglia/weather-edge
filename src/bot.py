@@ -120,7 +120,7 @@ class WeatherArbitrageBot:
         if obs:
             logger.info(
                 f"🌡️  {city.upper()}: {obs.temperature_f:.1f}°F (max today: {max_temp:.1f}°F) "
-                f"via {obs.source.upper()} @ {obs.timestamp.strftime('%H:%M')}"
+                f"via {obs.source.upper()}/{obs.station_id} @ {obs.timestamp.strftime('%H:%M')}"
             )
         
         # Get active markets
@@ -139,7 +139,7 @@ class WeatherArbitrageBot:
         """Execute a trade on an arbitrage opportunity."""
         # Skip if we've already traded this ticker this session
         if opp.ticker in self.traded_tickers:
-            logger.debug(f"Skipping {opp.ticker} - already traded this session")
+            logger.info(f"⏭️  Skipping {opp.ticker} - already traded this session")
             return False
         
         is_paper = self.config.mode == "paper"
