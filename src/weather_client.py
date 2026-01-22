@@ -207,8 +207,6 @@ class WeatherClient:
             return float(temp_str)
         return None
     
-        return None
-
     def _is_fresh(self, obs: WeatherObservation) -> bool:
         """Check if observation is fresh enough to use (within 90 mins)."""
         if not obs:

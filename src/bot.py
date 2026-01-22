@@ -47,7 +47,6 @@ class WeatherArbitrageBot:
     def __init__(self, config: TradingConfig):
         self.config = config
         self.weather_client = WeatherClient()
-        self.weather_client = WeatherClient()
         self.kalshi_client = KalshiClient(
             key_id=config.kalshi_api_key_id,
             private_key_path=config.kalshi_private_key_path
@@ -70,7 +69,7 @@ class WeatherArbitrageBot:
         }
         
         # Circuit breaker: halt if loss exceeds this % of initial balance
-        self.max_loss_pct = 0.50  # 50%
+        self.max_loss_pct = 0.20  # 50%
         
         # Track tickers we've already traded to prevent duplicate orders
         self.traded_tickers: set = set()

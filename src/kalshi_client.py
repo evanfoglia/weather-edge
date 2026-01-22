@@ -19,10 +19,6 @@ from typing import Dict, List, Optional
 from zoneinfo import ZoneInfo
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from datetime import datetime, date
-from typing import Dict, List, Optional
-from zoneinfo import ZoneInfo
-
 from config import CITIES, KALSHI_API_BASE, KALSHI_TRADING_API_BASE, CityConfig
 
 logger = logging.getLogger(__name__)
