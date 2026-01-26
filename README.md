@@ -80,6 +80,37 @@ MAX_CONTRACT_LIMIT=50   # Maximum contracts per trade
 
 ---
 
+## 📡 Data Sources & Validity
+
+The bot ensures data accuracy by aggregating three independent, official government weather sources.
+
+### 1. The Sources
+- **IEM (Iowa Environmental Mesonet)**:
+  - **Role**: **System of Record** for Daily Highs.
+  - **Capability**: Provides a full 24-hour lookback of ASOS station data.
+  - **Why it's critical**: If the daily high (e.g., 90°F) occurred at 2:00 PM, but the current temp is 85°F at 5:00 PM, IEM "remembers" the 90°F high.
+- **NWS (National Weather Service)**: 
+  - **Role**: Official current temperature check.
+  - **Capability**: Latest observation from `api.weather.gov`.
+- **METAR (Aviation Weather)**:
+  - **Role**: Low-latency current temperature check.
+  - **Capability**: Latest observation from aviation feeds.
+
+### 2. Refresh Rate
+- The bot polls all three sources every **30 seconds** (default configurable via `POLL_INTERVAL`).
+- While source APIs typically update hourly, frequent polling ensures we catch the update immediately when it happens.
+
+### 3. Validity Logic
+Since a "Daily High" is a **monotonic** value (it can never go down, only up):
+- The bot takes the **MAXIMUM** value reported by any of the three sources.
+- **Example**:
+  - IEM History: Max 88°F (occurred at 1pm)
+  - Current METAR: 82°F (it cooled down)
+  - **Bot Decision**: The Daily High is **88°F**.
+- This guarantees we never "miss" a winning bet just because the temperature dropped later in the day.
+
+---
+
 ## 🏙️ Supported Markets
 
 The bot monitors weather markets for 12 cities:
