@@ -407,7 +407,7 @@ class WeatherClient:
         else:
             iem_str = "N/A"
         
-        logger.info(f"{city.upper()}: METAR {metar_str} | NWS {nws_str} | IEM High {iem_str}")
+        logger.info(f"{city.upper()}: METAR (Current) {metar_str} | NWS (Current) {nws_str} | IEM Daily High {iem_str}")
         
         return best_obs
     
